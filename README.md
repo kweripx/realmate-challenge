@@ -27,7 +27,6 @@ Desenvolver uma web API utilizando **Django Rest Framework** para receber webhoo
 	- Uma `CLOSED` `Conversation` não pode receber novas mensagens
 	- Uma `Message` deve ter dois tipos: `SENT` e `RECEIVED`
 6.	O banco de dados utilizado deve ser SQLite.
-7.	O código deve ser enviado para um repositório privado no GitHub criado por nós.
 
 ## 📦 Formato dos Webhooks
 
