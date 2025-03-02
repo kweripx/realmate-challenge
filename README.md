@@ -1,159 +1,134 @@
-# realmate-challenge
+# Documentação - Realmate Challenge API
 
-## Introdução
+## Requisitos do Sistema
 
-O objetivo deste desafio é avaliar seus conhecimentos em **APIs** e **Webhooks**, além da sua capacidade de aprender rapidamente e implementar soluções eficientes, usando frameworks renomados como **Django** e **Django Rest Framework (DRF)**.
+- Python 3.13 ou superior
+- Poetry (gerenciador de dependências)
 
-Você deverá desenvolver uma web API que sincroniza eventos de um sistema de atendimentos no WhatsApp, processando webhooks e registrando as alterações no banco de dados.
+## Configuração do Ambiente
 
-## 🎯 O Desafio
+### 1. Instalar o Poetry
 
-Desenvolver uma web API utilizando **Django Rest Framework** para receber webhooks de um sistema de atendimento. Esses webhooks contêm eventos relacionados a conversas e mensagens, e devem ser registrados no banco de dados corretamente.
+Caso ainda não tenha o Poetry instalado:
 
-## 📌 Requisitos
+```bash
+pip install poetry
+```
 
-1.	Criar dois modelos principais:
-	- `Conversation`
-	- `Message` (relacionado a uma `Conversation`)
-2.	A API deve:
-	- Receber eventos via POST no endpoint `localhost/webhook/`
-	- Criar instâncias dos modelos correspondentes
-3.	Criar um endpoint GET em `localhost/conversations/{id}` para expor a conversa, incluindo:
-	- Seu estado (`OPEN` ou `CLOSED`)
-	- Suas mensagens
-4.	Lidar com erros de maneira graceful (evitar retornos de erro 500).
-5.	Restrições:
-	- Uma `Conversation` deve ter um estado. Os estados possíveis são: `OPEN` e `CLOSED`
-	- Uma `CLOSED` `Conversation` não pode receber novas mensagens
-	- Uma `Message` deve ter dois tipos: `SENT` e `RECEIVED`
-6.	O banco de dados utilizado deve ser SQLite.
+### 2. Clonar o Repositório
 
-## 📦 Formato dos Webhooks
+```bash
+git clone <url-do-repositorio>
+cd realmate-challenge
+```
 
-Os eventos virão no seguinte formato:
+### 3. Instalar Dependências
 
-### Novo evento de conversa iniciada
+```bash
+poetry install
+```
 
-```json
-{
+### 4. Ativar o Ambiente Virtual
+
+```bash
+poetry shell
+```
+
+## Executando a Aplicação
+
+### 1. Aplicar Migrações
+
+```bash
+python manage.py migrate
+```
+
+### 2. Iniciar o Servidor de Desenvolvimento
+
+```bash
+python manage.py runserver
+```
+
+O servidor estará disponível em: http://localhost:8000/
+
+## Estrutura da API
+
+A API possui dois endpoints principais:
+
+1. **Webhook** (`/webhook/`): Para receber eventos de conversas e mensagens
+2. **Detalhes da Conversa** (`/conversations/{id}/`): Para consultar conversas e suas mensagens
+
+## Testando a API
+
+### Executando Testes Automatizados
+
+Para executar todos os testes:
+
+```bash
+python manage.py test api
+```
+
+Para executar um teste específico:
+
+```bash
+python manage.py test api.tests.WebhookTestCase.test_create_new_conversation
+```
+
+### Testes Manuais com cURL ou Postman
+
+#### 1. Criar uma Nova Conversa
+
+```bash
+curl -X POST http://localhost:8000/webhook/ \
+  -H "Content-Type: application/json" \
+  -d '{
     "type": "NEW_CONVERSATION",
-    "timestamp": "2025-02-21T10:20:41.349308",
+    "timestamp": "2025-03-01T10:20:41.349308",
     "data": {
         "id": "6a41b347-8d80-4ce9-84ba-7af66f369f6a"
     }
-}
+}'
 ```
 
-### Novo evento de mensagem recebida
+#### 2. Adicionar Mensagem a uma Conversa
 
-```json
-{
+```bash
+curl -X POST http://localhost:8000/webhook/ \
+  -H "Content-Type: application/json" \
+  -d '{
     "type": "NEW_MESSAGE",
-    "timestamp": "2025-02-21T10:20:42.349308",
+    "timestamp": "2025-03-01T10:20:42.349308",
     "data": {
         "id": "49108c71-4dca-4af3-9f32-61bc745926e2",
         "direction": "RECEIVED",
         "content": "Olá, tudo bem?",
         "conversation_id": "6a41b347-8d80-4ce9-84ba-7af66f369f6a"
     }
-}
+}'
 ```
 
-### Novo evento de mensagem enviada
+#### 3. Fechar uma Conversa
 
-```json
-{
-    "type": "NEW_MESSAGE",
-    "timestamp": "2025-02-21T10:20:44.349308",
-    "data": {
-        "id": "16b63b04-60de-4257-b1a1-20a5154abc6d",
-        "direction": "SENT",
-        "content": "Tudo ótimo e você?",
-        "conversation_id": "6a41b347-8d80-4ce9-84ba-7af66f369f6a"
-    }
-}
-```
-
-### Novo evento de conversa encerrada
-
-```json
-{
+```bash
+curl -X POST http://localhost:8000/webhook/ \
+  -H "Content-Type: application/json" \
+  -d '{
     "type": "CLOSE_CONVERSATION",
-    "timestamp": "2025-02-21T10:20:45.349308",
+    "timestamp": "2025-03-01T10:20:45.349308",
     "data": {
         "id": "6a41b347-8d80-4ce9-84ba-7af66f369f6a"
     }
-}
+}'
 ```
 
-## 📌 Regras de Negócio
-
-- Toda conversa começa no estado “OPEN”
-- Uma conversa no estado “CLOSED” não pode receber novas mensagens
-- As mensagens devem estar associadas a uma conversa existente
-- O ID da mensagem e o ID da conversa devem ser únicos
-- O sistema deve lidar com erros sem retornar HTTP 500
-
-## 🔥 Bônus (Opcional)
-
-Se quiser ir além e demonstrar sua capacidade de aprendizado e desenvolvimento rápido, você pode implementar um frontend simples para visualizar as conversas e mensagens.
-
-## 🚀 Tecnologias e Ferramentas
-
-- Django
-- Django Rest Framework
-- Poetry
-- SQLite
-- GitHub
-
-## 📌 Instruções de Instalação
-
-### Pré-requisitos
-
-- Instalar o Poetry para gerenciamento de dependências:
+#### 4. Consultar uma Conversa
 
 ```bash
-pip install poetry
+curl http://localhost:8000/conversations/6a41b347-8d80-4ce9-84ba-7af66f369f6a/
 ```
 
-### Instalação do Projeto
+## Regras de Negócio
 
-1.	Realize o Fork deste projeto para o seu GitHub.
-
-2.	Instale as dependências do projeto utilizando o Poetry:
-
-```bash
-cd realmate-challenge
-poetry install
-```
-
-3.	Aplique as migrações no banco de dados SQLite:
-
-```bash
-python manage.py migrate
-```
-
-4.	Execute o servidor de desenvolvimento:
-
-```bash
-python manage.py runserver
-```
-
-
-## 📌 Entrega e Requisitos
-
-Após concluir o desafio, envie o link do repositório para o e-mail tecnologia@realmate.com.br com seu nome e número do WhatsApp informados no e-mail.
-
-## 📚 Referências
-
-- [Django Rest Framework](https://www.django-rest-framework.org/)
-- [Django](https://www.djangoproject.com/)
-- [Poetry](https://python-poetry.org/)
-
-## 📧 Dúvidas
-
-Caso tenha dúvidas sobre o desafio, entre em contato com nossa equipe de tecnologia no e-mail tecnologia@realmate.com.br.
-
-Boa sorte! 🚀
-
-_Equipe Realmate_
+1. Toda conversa inicia com status `OPEN`
+2. Uma conversa com status `CLOSED` não pode receber novas mensagens
+3. As mensagens estão sempre associadas a uma conversa existente
+4. Os IDs de conversas e mensagens são UUIDs únicos
